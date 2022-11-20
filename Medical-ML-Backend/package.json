@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "start-backend": "uvicorn api:app --reload --port 80",
+        "start-model": "uvicorn model_api:app --port 82"
+    }
+}
