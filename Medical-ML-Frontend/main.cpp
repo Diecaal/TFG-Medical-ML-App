@@ -17,7 +17,9 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    LogIn l;
-    l.show();
+
+    LogIn *l = new LogIn();
+    l->show();
+
     return a.exec();
 }

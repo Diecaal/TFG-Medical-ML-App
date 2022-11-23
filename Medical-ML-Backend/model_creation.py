@@ -323,8 +323,13 @@ def get_model():
 
     # model.load_weights("./models/trained_model.h5")
 
+    graph = tf.compat.v1.get_default_graph()
+    session = tf.compat.v1.keras.backend.get_session()
+    init = tf.compat.v1.global_variables_initializer()
+    session.run(init)
+
     model = tf.keras.models.load_model("./models/full_model.h5", compile=False)
 
     print("--------- Model compilation finished ---------")
 
-    return model
+    return model, graph, session

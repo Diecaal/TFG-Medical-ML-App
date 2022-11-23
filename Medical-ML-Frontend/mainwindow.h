@@ -53,6 +53,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QString selectedFilename;
+    QString currentImgUUID;
     void generateDiseasesLabels();
     QString cleanJsonResponse(QByteArray responseBody);
 };

@@ -10,6 +10,7 @@ from pathlib import Path
 import json
 
 tf.compat.v1.disable_eager_execution()
+tf.compat.v1.disable_v2_behavior()
 # from tensorflow.compat.v1.logging import INFO, set_verbosity
 # from tensorflow.compat.v1 import disable_eager_execution
 
@@ -37,25 +38,48 @@ def load_image(img, predict_image_dir, image_dir, df, preprocess=True, H=320, W=
     return x
 
 
-def grad_cam(input_model, image, cls, layer_name, H=320, W=320):
+def grad_cam(
+    input_model, image, cls, layer_name, graph=None, session=None, H=320, W=320
+):
     """GradCAM method for visualizing input saliency."""
-    y_c = input_model.output[0, cls]
-    conv_output = input_model.get_layer(layer_name).output
-    grads = K.gradients(y_c, conv_output)[0]
+    if graph is not None:
+        with graph.as_default():
+            tf.compat.v1.keras.backend.set_session(session)
+            y_c = input_model.output[0, cls]
+            conv_output = input_model.get_layer(layer_name).output
+            grads = K.gradients(y_c, conv_output)[0]
 
-    gradient_function = K.function([input_model.input], [conv_output, grads])
+            gradient_function = K.function([input_model.input], [conv_output, grads])
 
-    output, grads_val = gradient_function([image])
-    output, grads_val = output[0, :], grads_val[0, :, :, :]
+            output, grads_val = gradient_function([image])
+            output, grads_val = output[0, :], grads_val[0, :, :, :]
 
-    weights = np.mean(grads_val, axis=(0, 1))
-    cam = np.dot(output, weights)
+            weights = np.mean(grads_val, axis=(0, 1))
+            cam = np.dot(output, weights)
 
-    # Process CAM
-    cam = cv2.resize(cam, (W, H), cv2.INTER_LINEAR)  # type: ignore
-    cam = np.maximum(cam, 0)
-    cam = cam / cam.max()
-    return cam
+            # Process CAM
+            cam = cv2.resize(cam, (W, H), cv2.INTER_LINEAR)  # type: ignore
+            cam = np.maximum(cam, 0)
+            cam = cam / cam.max()
+            return cam
+    else:
+        y_c = input_model.output[0, cls]
+        conv_output = input_model.get_layer(layer_name).output
+        grads = K.gradients(y_c, conv_output)[0]
+
+        gradient_function = K.function([input_model.input], [conv_output, grads])
+
+        output, grads_val = gradient_function([image])
+        output, grads_val = output[0, :], grads_val[0, :, :, :]
+
+        weights = np.mean(grads_val, axis=(0, 1))
+        cam = np.dot(output, weights)
+
+        # Process CAM
+        cam = cv2.resize(cam, (W, H), cv2.INTER_LINEAR)  # type: ignore
+        cam = np.maximum(cam, 0)
+        cam = cam / cam.max()
+        return cam
 
 
 def build_json(img_uuid, predictions, labels):
@@ -89,6 +113,72 @@ def generate_gradcam(
     selected_labels,
     predictions,
     preprocessed_input,
+    graph,
+    session,
+    layer_name="bn",
+):
+    if not os.path.exists(f"./plots/{img_uuid}/"):
+        os.makedirs(f"./plots/{img_uuid}/")
+
+        print("Loading original image")
+        plt.figure(figsize=(15, 10))
+        plt.title("Original")
+        plt.axis("off")
+        plt.imshow(
+            np.array(
+                load_image(
+                    f"{img_uuid}/original.png",
+                    predict_image_dir,
+                    images_dir,
+                    df,
+                    preprocess=False,
+                )
+            ),
+            cmap="gray",
+        )
+        # plt.savefig(f"./plots/{img_uuid}/original")
+
+        for i in range(len(labels)):
+            if float(predictions[0][i]) < 0.6:
+                continue
+            if labels[i] in selected_labels:
+                print(f"Generating gradcam for class {labels[i]}")
+                gradcam = grad_cam(
+                    model, preprocessed_input, i, layer_name, graph, session
+                )
+                plt.figure(figsize=(15, 10))
+                plt.title(f"{labels[i]}: p={predictions[0][i]:.3f}")
+                plt.axis("off")
+                plt.imshow(
+                    np.array(
+                        load_image(
+                            f"{img_uuid}/original.png",
+                            predict_image_dir,
+                            images_dir,
+                            df,
+                            preprocess=False,
+                        )
+                    ),
+                    cmap="gray",
+                )
+                plt.imshow(gradcam, cmap="jet", alpha=min(0.5, predictions[0][i]))
+                plt.savefig(
+                    f"./xrays/predict/{img_uuid}/{labels[i]}",
+                    bbox_inches="tight",
+                    pad_inches=0,
+                )
+
+
+def generate_gradcam_unique(
+    model,
+    img_uuid: str,
+    predict_image_dir: str,
+    images_dir: str,
+    df,
+    labels: list[str],
+    selected_labels: list[str],
+    predictions,
+    preprocessed_input,
     layer_name="bn",
 ):
     if not os.path.exists(f"./plots/{img_uuid}/"):
@@ -110,15 +200,13 @@ def generate_gradcam(
         ),
         cmap="gray",
     )
-    plt.savefig(f"./plots/{img_uuid}/original")
+    # plt.savefig(f"./plots/{img_uuid}/original")
 
     for i in range(len(labels)):
-        if float(predictions[0][i]) < 0.6:
-            continue
-        if labels[i] in selected_labels:
+        if str(labels[i]).lower() in [x.lower() for x in selected_labels]:
             print(f"Generating gradcam for class {labels[i]}")
             gradcam = grad_cam(model, preprocessed_input, i, layer_name)
-            img_plot = plt.figure(figsize=(15, 10))
+            plt.figure(figsize=(15, 10))
             plt.title(f"{labels[i]}: p={predictions[0][i]:.3f}")
             plt.axis("off")
             plt.imshow(
@@ -134,4 +222,8 @@ def generate_gradcam(
                 cmap="gray",
             )
             plt.imshow(gradcam, cmap="jet", alpha=min(0.5, predictions[0][i]))
-            plt.savefig(f"./xrays/predict/{img_uuid}/{labels[i]}")
+            plt.savefig(
+                f"./xrays/predict/{img_uuid}/{labels[i]}",
+                bbox_inches="tight",
+                pad_inches=0,
+            )

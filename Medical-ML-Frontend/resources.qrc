@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/media">
         <file>media/background.jpg</file>
+        <file>media/doctor-logo.png</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>media/close.jpeg</file>
     </qresource>
 </RCC>

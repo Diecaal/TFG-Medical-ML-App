@@ -2,10 +2,12 @@
 #include "ui_login.h"
 
 LogIn::LogIn(QWidget *parent) :
-    QDialog(parent),
+    QWidget(parent),
     ui(new Ui::LogIn)
 {
     ui->setupUi(this);
+    this->setWindowFlags(Qt::WindowType::FramelessWindowHint);
+    this->setAttribute(Qt::WA_TranslucentBackground);
 }
 
 LogIn::~LogIn()
@@ -45,3 +47,12 @@ void LogIn::on_pushButton_hopistal_domain_clicked()
     ui->lineEdit_email->setText(formated);
 }
 
+void LogIn::mousePressEvent(QMouseEvent *event) {
+    cur_pos = event->globalPosition().toPoint();
+}
+
+void LogIn::mouseMoveEvent(QMouseEvent *event) {
+    new_pos = QPoint(event->globalPosition().toPoint() - cur_pos);
+    move(x() + new_pos.x(), y() + new_pos.y());
+    cur_pos = event->globalPosition().toPoint();
+}

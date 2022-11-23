@@ -123,8 +123,9 @@ void MainWindow::computeGraphics(QByteArray responseBody) {
 
     QStringList categories;
     QHorizontalBarSeries *series = new QHorizontalBarSeries();
-    QBarSet *barSet = new QBarSet("Prediccion");
+    QBarSet *barSet = new QBarSet("Prediction");
 
+    currentImgUUID = jsonObj["uuid"].toString();
     QJsonArray predictionsArray = jsonObj["predictions"].toArray();
 
     for(int i = 0; i < predictionsArray.size(); i++) {
@@ -233,8 +234,45 @@ void MainWindow::on_pushButton_clicked()
         allButtons.at(i)->setChecked(false);
     }
 
+    QMainWindow* window = new QMainWindow();
+    QWidget* widget = new QWidget();
+    QGridLayout* grid = new QGridLayout();
+
+    int row = 0;
+    int col = 0;
     for(int i = 0; i < selectedDiseases.size(); i++) {
-        qInfo() << selectedDiseases.at(i);
+        QNetworkRequest request;
+        request.setUrl(QUrl("http://127.0.0.1:80/gradcam/" + currentImgUUID + "/" + selectedDiseases.at(i)));
+
+        QNetworkReply* reply = manager->get(request);
+
+        QEventLoop loop;
+        connect(reply, SIGNAL(finished()),&loop,SLOT(quit()));
+        loop.exec();
+
+        QPixmap pm;
+        pm.loadFromData(reply->readAll());
+        pm.scaled(528,528,Qt::KeepAspectRatio);
+
+        QLabel *imageLabel = new QLabel();
+        imageLabel->setPixmap(pm);
+        if(col > 1){
+            col = 0;
+            row ++;
+        }
+        grid->addWidget(imageLabel,row,col,1,1);
+        col++;
     }
+
+    window->setWindowTitle("Gradcam of XRay for selected diseases");
+    widget->setLayout(grid);
+    window->setCentralWidget(widget);
+    window->resize(1000, 500);
+    window->show();
+
+    for(int i = 0; i < allButtons.size(); i++) {
+        allButtons.at(i)->setDisabled(false);
+    }
+
 }
 
