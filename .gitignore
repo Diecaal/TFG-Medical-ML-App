@@ -27,8 +27,7 @@ archive.zip
 .*.sw?
 
 ## ML Model Data
-xrays
-plots
+xrays/predict
 
 ## QT / C++ Files
 
