@@ -1,18 +1,14 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
-
-from keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
+from keras import backend as K
 from keras.applications.densenet import DenseNet121
 from keras.layers import Dense, GlobalAveragePooling2D
-from keras.models import Model
-from keras import backend as K
+from keras.models import Model, load_model
+from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import roc_auc_score, roc_curve
-
-from keras.models import load_model
-
-import tensorflow as tf
 
 labels = [
     "Cardiomegaly",
@@ -303,32 +299,32 @@ def get_roc_curve(labels, predicted_vals, generator):
 
 
 def get_model():
-    # print("--------- Model compilation started ---------")
+    print("--------- Model compilation started ---------")
 
-    # base_model = DenseNet121(weights="./models/densenet.hdf5", include_top=False)
+    base_model = DenseNet121(weights="./models/densenet.hdf5", include_top=False)
 
-    # x = base_model.output
+    x = base_model.output
 
-    # # add a global spatial average pooling layer
-    # x = GlobalAveragePooling2D()(x)
+    # add a global spatial average pooling layer
+    x = GlobalAveragePooling2D()(x)
 
-    # # and a logistic layer
-    # predictions = Dense(len(labels), activation="sigmoid")(x)
+    # and a logistic layer
+    predictions = Dense(len(labels), activation="sigmoid")(x)
 
-    # model = Model(inputs=base_model.input, outputs=predictions)
-    # model.compile(optimizer="adam", loss=get_weighted_loss(pos_weights, neg_weights))
+    model = Model(inputs=base_model.input, outputs=predictions)
+    model.compile(optimizer="adam", loss=get_weighted_loss(pos_weights, neg_weights))
 
-    # # model.summary()
+    # model.summary()
     # model.save("compiled_model.h5")
-
-    # model.load_weights("./models/trained_model.h5")
 
     graph = tf.compat.v1.get_default_graph()
     session = tf.compat.v1.keras.backend.get_session()
     init = tf.compat.v1.global_variables_initializer()
     session.run(init)
+    
+    model.load_weights("./models/trained_model.h5")
 
-    model = tf.keras.models.load_model("./models/full_model.h5", compile=False)
+    # model = tf.keras.models.load_model("./models/full_model.h5", compile=False)
 
     print("--------- Model compilation finished ---------")
 

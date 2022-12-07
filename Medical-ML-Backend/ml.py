@@ -1,7 +1,8 @@
-from gradcam import compute_gradcam, generate_gradcam, generate_gradcam_unique
 import pandas as pd
-import model_creation
 import tensorflow as tf
+
+import model_creation
+from gradcam import compute_gradcam, generate_gradcam, generate_gradcam_unique
 
 labels = [
     "Cardiomegaly",
@@ -30,9 +31,6 @@ class Model:
         self.IMAGE_DIR = "./xrays/computed"
         self.PREDICTIONS_IMAGE_DIR = "./xrays/predict"
         self.df = pd.read_csv("./csv/train-small.csv")
-        self.eval_model()
-
-    def eval_model(self):
         self.model, self.graph, self.session = model_creation.get_model()
 
     def get_labels(self):

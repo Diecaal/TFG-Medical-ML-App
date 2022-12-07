@@ -12,16 +12,16 @@ CONFIG += c++17
 
 SOURCES += \
     login.cpp \
-    aes.cpp \
     cryptoUtil.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    hashing/sha256.cpp
 
 HEADERS += \
     login.h \
-    aes.h \
     cryptoUtil.h \
-    mainwindow.h
+    mainwindow.h \
+    hashing/sha256.h
 
 FORMS += \
     login.ui \
@@ -38,4 +38,29 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     resources.qrc
 
-INCLUDEPATH += "$$PWD/3rdparty"
+
+# cryptopp
+INCLUDEPATH += C:\cryptolibs\cryptopp-CRYPTOPP_8_1_0
+
+contains(QT_ARCH, i386) {
+    message("32-bit")
+    TARGETBIT=32bit
+} else {
+    message("64-bit")
+    TARGETBIT=64bit
+}
+
+CONFIG(debug, debug|release) {
+    LIBS += -L$$PWD/cryptpp/static/msvc2019_$$TARGETBIT/Debug -lcryptlib
+    message($$LIBS)
+}
+
+CONFIG(release, debug|release) {
+    LIBS += -L$$PWD/cryptpp/static/msvc2019_$$TARGETBIT/Release -lcryptlib
+    message($$LIBS)
+}
+
+DISTFILES += \
+    media/checked.png \
+    media/close.png \
+    media/warning.png

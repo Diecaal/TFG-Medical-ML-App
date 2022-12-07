@@ -9,13 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QPixmap pix(":/media/media/background.jpg");
-    pix = pix.scaled(this->size(), Qt::IgnoreAspectRatio);
-
-    QPalette palette;
-    palette.setBrush(QPalette::Window, pix);
-    this->setPalette(palette);
-
     this->generateDiseasesLabels();
 }
 
@@ -26,7 +19,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_buttonUpload_clicked()
 {
-    selectedFilename = QFileDialog::getOpenFileName(this, "Upload Image", QDir::home().absolutePath(), tr("Image Files (*.png *.jpg *.bmp)"));
+    selectedFilename = QFileDialog::getOpenFileName(this, "Upload Image", "C:/", tr("Image Files (*.png *.jpg *.bmp)")); //, 0, QFileDialog::DontUseNativeDialog);
 
     if(QString::compare(selectedFilename, QString()) != 0)
     {
@@ -37,7 +30,12 @@ void MainWindow::on_buttonUpload_clicked()
         {
             image = image.scaledToWidth(ui->labelUpload->width(), Qt::SmoothTransformation);
 
-            ui->labelUpload->setPixmap(QPixmap::fromImage(image));
+            QPixmap pixImage = QPixmap::fromImage(image);
+
+            int w = ui->labelUpload->width();
+            int h = ui->labelUpload->height();
+
+            ui->labelUpload->setPixmap(pixImage.scaled(w,h,Qt::KeepAspectRatio));
             QMessageBox::information(this, "Image uploaded", selectedFilename);
 
             ui->btnUploadServer->setEnabled(true);
@@ -48,8 +46,12 @@ void MainWindow::on_buttonUpload_clicked()
             ui->btnUploadServer->setEnabled(false);
         }
     }
+    else
+    {
+        QMessageBox::warning(this, "No image selected", selectedFilename);
+        ui->btnUploadServer->setEnabled(false);
+    }
 }
-
 
 void MainWindow::on_btnUploadServer_clicked()
 {
@@ -83,6 +85,8 @@ void MainWindow::on_btnUploadServer_clicked()
     loop.exec();
     // Ahead from here we have access to reply data
 
+    actionDiseasesButtons(true);
+    ui->btnGenerateGradcam->setEnabled(true);
     computeGraphics(reply->readAll());
 }
 
@@ -176,7 +180,6 @@ void MainWindow::generateDiseasesLabels() {
     loop.exec();
 
     QString response = this->cleanJsonResponse(reply->readAll());
-    qInfo() << response;
 
     QJsonDocument jsonDoc = QJsonDocument::fromJson(response.toUtf8());
     QJsonObject jsonObj;
@@ -219,9 +222,23 @@ void MainWindow::generateDiseasesLabels() {
         ui->btnDiseasesLayout->addWidget(cb,currentRow,currentColumn,1,1);
         currentColumn++;
     }
+
+    ui->btnDiseasesLayout->setAlignment(Qt::AlignCenter);
+    ui->btnDiseasesLayout->setSpacing(20);
+    actionDiseasesButtons(false);
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::actionDiseasesButtons(bool enable)
+{
+    QList<QCheckBox*> allButtons = ui->btnDiseasesLayout->parentWidget()->findChildren<QCheckBox*>();
+    for(int i = 0; i < allButtons.size(); i++) {
+        allButtons.at(i)->setEnabled(enable);
+    }
+
+}
+
+
+void MainWindow::on_btnGenerateGradcam_clicked()
 {
     QList<QCheckBox*> allButtons = ui->btnDiseasesLayout->parentWidget()->findChildren<QCheckBox*>();
     QList<QString> selectedDiseases;
@@ -243,7 +260,7 @@ void MainWindow::on_pushButton_clicked()
     for(int i = 0; i < selectedDiseases.size(); i++) {
         QNetworkRequest request;
         request.setUrl(QUrl("http://127.0.0.1:80/gradcam/" + currentImgUUID + "/" + selectedDiseases.at(i)));
-
+        qInfo() << "http://127.0.0.1:80/gradcam/" + currentImgUUID + "/" + selectedDiseases.at(i);
         QNetworkReply* reply = manager->get(request);
 
         QEventLoop loop;
@@ -273,6 +290,5 @@ void MainWindow::on_pushButton_clicked()
     for(int i = 0; i < allButtons.size(); i++) {
         allButtons.at(i)->setDisabled(false);
     }
-
 }
 

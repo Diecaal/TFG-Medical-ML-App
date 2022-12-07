@@ -1,13 +1,14 @@
-import random
+import json
 import os
+import random
+from pathlib import Path
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras import backend as K
 from keras.utils.image_utils import load_img
-from pathlib import Path
-import json
 
 tf.compat.v1.disable_eager_execution()
 tf.compat.v1.disable_v2_behavior()
@@ -117,56 +118,59 @@ def generate_gradcam(
     session,
     layer_name="bn",
 ):
-    if not os.path.exists(f"./plots/{img_uuid}/"):
-        os.makedirs(f"./plots/{img_uuid}/")
+    #if not os.path.exists(f"./plots/{img_uuid}/"):
+        #os.makedirs(f"./plots/{img_uuid}/")
 
-        print("Loading original image")
-        plt.figure(figsize=(15, 10))
-        plt.title("Original")
-        plt.axis("off")
-        plt.imshow(
-            np.array(
-                load_image(
-                    f"{img_uuid}/original.png",
-                    predict_image_dir,
-                    images_dir,
-                    df,
-                    preprocess=False,
-                )
-            ),
-            cmap="gray",
-        )
-        # plt.savefig(f"./plots/{img_uuid}/original")
+    print("Loading original image")
+    plt.figure(figsize=(15, 10))
+    plt.title("Original")
+    plt.axis("off")
+    plt.imshow(
+        np.array(
+            load_image(
+                f"{img_uuid}/original.png",
+                predict_image_dir,
+                images_dir,
+                df,
+                preprocess=False,
+            )
+        ),
+        cmap="gray",
+    )
+    # plt.savefig(f"./plots/{img_uuid}/original")
 
-        for i in range(len(labels)):
-            if float(predictions[0][i]) < 0.6:
-                continue
-            if labels[i] in selected_labels:
-                print(f"Generating gradcam for class {labels[i]}")
-                gradcam = grad_cam(
-                    model, preprocessed_input, i, layer_name, graph, session
-                )
-                plt.figure(figsize=(15, 10))
-                plt.title(f"{labels[i]}: p={predictions[0][i]:.3f}")
-                plt.axis("off")
-                plt.imshow(
-                    np.array(
-                        load_image(
-                            f"{img_uuid}/original.png",
-                            predict_image_dir,
-                            images_dir,
-                            df,
-                            preprocess=False,
-                        )
-                    ),
-                    cmap="gray",
-                )
-                plt.imshow(gradcam, cmap="jet", alpha=min(0.5, predictions[0][i]))
-                plt.savefig(
-                    f"./xrays/predict/{img_uuid}/{labels[i]}",
-                    bbox_inches="tight",
-                    pad_inches=0,
-                )
+    for i in range(len(labels)):
+        if (float(predictions[0][i]) > 0.6) and (labels[i] in selected_labels):
+            print(f"Generating gradcam for class {labels[i]}")
+            gradcam = grad_cam(
+                model, preprocessed_input, i, layer_name, graph, session
+            )
+            plt.figure(figsize=(15, 10))
+            plt.title(f"{labels[i]}: p={predictions[0][i]:.3f}")
+            plt.axis("off")
+            plt.imshow(
+                np.array(
+                    load_image(
+                        f"{img_uuid}/original.png",
+                        predict_image_dir,
+                        images_dir,
+                        df,
+                        preprocess=False,
+                    )
+                ),
+                cmap="gray",
+            )
+            plt.imshow(gradcam, cmap="jet", alpha=min(0.5, predictions[0][i]))
+            plt.savefig(
+                f"./xrays/predict/{img_uuid}/{str(labels[i]).lower()}",
+                bbox_inches="tight",
+                pad_inches=0,
+            )
+            
+            plt.clf()
+            plt.close()
+            
+    return True
 
 
 def generate_gradcam_unique(

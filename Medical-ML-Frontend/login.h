@@ -30,6 +30,8 @@ private slots:
 
     void on_pushButton_hopistal_domain_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::LogIn *ui;
 
@@ -38,6 +40,10 @@ private:
 
     QPoint cur_pos;
     QPoint new_pos;
+
+    std::string stringToSHA(std::string password);
+
+    virtual void getServerStatus();
 };
 
 #endif // LOGIN_H

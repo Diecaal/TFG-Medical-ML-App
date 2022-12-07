@@ -2,8 +2,14 @@
     <qresource prefix="/media">
         <file>media/background.jpg</file>
         <file>media/doctor-logo.png</file>
+        <file>media/close.jpeg</file>
+        <file>media/checked.png</file>
+        <file>media/close.png</file>
+        <file>media/warning.png</file>
     </qresource>
     <qresource prefix="/">
-        <file>media/close.jpeg</file>
+        <file>media/checked.png</file>
+        <file>media/close.png</file>
+        <file>media/warning.png</file>
     </qresource>
 </RCC>

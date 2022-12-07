@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>308</width>
-    <height>426</height>
+    <width>311</width>
+    <height>462</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -37,8 +37,8 @@ background-color:rgba(2, 65, 118, 200);
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>291</width>
-     <height>410</height>
+     <width>311</width>
+     <height>441</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -49,8 +49,8 @@ background-color:rgba(2, 65, 118, 200);
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>290</width>
-      <height>410</height>
+      <width>291</width>
+      <height>441</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -206,6 +206,9 @@ margin: 0 auto;</string>
       <bold>true</bold>
      </font>
     </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
     <property name="text">
      <string>Domain</string>
     </property>
@@ -215,16 +218,73 @@ margin: 0 auto;</string>
      <rect>
       <x>250</x>
       <y>10</y>
-      <width>31</width>
-      <height>31</height>
+      <width>32</width>
+      <height>32</height>
      </rect>
     </property>
     <property name="text">
      <string/>
     </property>
     <property name="icon">
-     <iconset theme="application-exit"/>
+     <iconset theme="application-exit" resource="resources.qrc">
+      <normaloff>:/media/media/close.jpeg</normaloff>:/media/media/close.jpeg</iconset>
     </property>
+    <property name="iconSize">
+     <size>
+      <width>32</width>
+      <height>32</height>
+     </size>
+    </property>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>400</y>
+      <width>151</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout" columnstretch="3,1" columnminimumwidth="3,1">
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelStatus">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color:rgba(255, 255, 255, 150);
+margin-right: 8 px;</string>
+       </property>
+       <property name="text">
+        <string>Server Status</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="labelStatusImg">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
  </widget>

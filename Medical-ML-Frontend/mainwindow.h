@@ -47,8 +47,7 @@ public:
 private slots:
     void on_buttonUpload_clicked();
     void on_btnUploadServer_clicked();
-
-    void on_pushButton_clicked();
+    void on_btnGenerateGradcam_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -56,5 +55,7 @@ private:
     QString currentImgUUID;
     void generateDiseasesLabels();
     QString cleanJsonResponse(QByteArray responseBody);
+
+    void actionDiseasesButtons(bool enable);
 };
 #endif // MAINWINDOW_H
